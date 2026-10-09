@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Royal Post</title>
+<meta name="description" content="You are the royal pigeon. Every letter between a florid prince and a terse princess goes through your claws.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%223%22 y=%227%22 width=%2226%22 height=%2218%22 rx=%223%22 fill=%22%23fffaf0%22 stroke=%22%231d2a3a%22 stroke-width=%222%22/%3E%3Cpath d=%22M4 9l12 9 12-9%22 fill=%22none%22 stroke=%22%231d2a3a%22 stroke-width=%222%22/%3E%3Ccircle cx=%2216%22 cy=%2218%22 r=%225%22 fill=%22%23b8322b%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=IM+Fell+English:ital@0;1&family=Pinyon+Script&family=Rubik:wght@400;600;800&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+
+<!-- HUD: pinned to the corners, never covers the middle of the sky -->
+<div class="hud tl">
+  <div class="brand">Royal Post</div>
+  <div class="pill" id="dayPill">Day 1 · The Proposal</div>
+  <div class="pill crumbs">Crumbs <b id="crumbs">0</b></div>
+</div>
+
+<div class="hud tc" id="dial">
+  <svg viewBox="-60 -8 120 70" aria-hidden="true">
+    <path class="arc" d="M-50 50 A50 50 0 0 1 50 50"/>
+    <line class="horizon" x1="-56" y1="50" x2="56" y2="50"/>
+    <g id="sun"><circle r="7.5" class="sun"/><g class="rays"><path d="M0 -12v-4M0 12v4M-12 0h-4M12 0h4M-8.5 -8.5l-3 -3M8.5 8.5l3 3M-8.5 8.5l-3 3M8.5 -8.5l3 -3"/></g></g>
+    <g id="moon" opacity="0"><circle r="7" class="moon"/><circle r="6" cx="3.5" cy="-2" class="moon-cut"/></g>
+  </svg>
+  <div class="dial-label" id="sunset">Sunset in 0:55</div>
+</div>
+
+<div class="hud tr">
+  <div class="compass"><svg id="arrow" viewBox="0 0 34 34"><path d="M17 3 L27 27 L17 21 L7 27 Z"/></svg></div>
+  <div class="dist"><span id="target">to Westmere</span> · <span id="dist">— m</span></div>
+</div>
+
+<div class="hud bl">
+  <div class="parcel" id="parcel">
+    <div class="seal-wrap">
+      <svg class="drop-ring" viewBox="0 0 48 48"><circle id="dropRing" cx="24" cy="24" r="21"/></svg>
+      <div class="seal sun" id="sealIcon"><span></span></div>
+    </div>
+    <div class="parcel-text">
+      <div class="parcel-size" id="parcelSize">11 pages</div>
+      <div class="weight" id="weight"><i></i><i></i><i></i><i></i><em id="weightLabel">heavy</em></div>
+    </div>
+  </div>
+  <div class="lbl" id="spd">55 km/h · alt 40 m</div>
+  <div class="meter"><i id="stam"></i></div>
+  <div class="lbl">Wing power</div>
+</div>
+
+<div class="keys" id="keys"><kbd>A</kbd><kbd>D</kbd> turn · <kbd>W</kbd><kbd>S</kbd> climb · <kbd>Space</kbd> flap · <kbd>E</kbd> read · hold <kbd>Q</kbd> drop</div>
+
+<div class="toast" id="toast"></div>
+<div class="bubble" id="bubble" hidden></div>
+
+<button id="boost" class="touch-btn" type="button">FLAP</button>
+<button id="btnRead" class="touch-btn small" type="button">READ</button>
+<button id="btnDrop" class="touch-btn small danger" type="button">DROP<span>hold</span></button>
+<div id="stick" hidden><i id="knob"></i></div>
+
+<!-- Title -->
+<div class="overlay start" id="title">
+  <div class="card title-card">
+    <div class="eyebrow">A pigeon, two royals, six sunsets</div>
+    <h1>Royal Post</h1>
+    <p>A prince and a princess share a planet 1.9 km around and a treaty that says they must marry by the Harvest Moon. They have never met. Every letter between them goes through <em>your</em> claws.</p>
+    <p class="quiet">Deliver before sunset — or don’t. Read the letters on the way — or don’t. Or let one drop into the sea.</p>
+    <div class="ctl">
+      <span><kbd>A</kbd> <kbd>D</kbd></span><span>Turn</span>
+      <span><kbd>W</kbd> <kbd>S</kbd></span><span>Climb and dive</span>
+      <span><kbd>Space</kbd></span><span>Flap hard (uses wing power)</span>
+      <span><kbd>E</kbd></span><span>Break the seal and read</span>
+      <span>Hold <kbd>Q</kbd></span><span>Let go of the letter</span>
+      <span>Touch</span><span>Drag to steer · FLAP · READ · hold DROP</span>
+    </div>
+    <button class="go" id="go" type="button" data-testid="start">Take off</button>
+    <div class="credit">Week 5 · idea by V · NYU Game Design</div>
+  </div>
+</div>
+
+<!-- Story card: pickup / delivery / lost -->
+<div class="overlay" id="cardLayer" hidden>
+  <div class="card story-card" id="storyCard" data-testid="story-card">
+    <div class="who" id="cardWho">
+      <div class="crest" id="cardCrest"></div>
+      <div><div class="who-name" id="cardName"></div><div class="who-home" id="cardHome"></div></div>
+    </div>
+    <div class="card-lines" id="cardLines"></div>
+    <div class="parcel-row" id="cardParcel" hidden></div>
+    <button class="go" id="cardGo" type="button" data-testid="card-continue">Take off</button>
+  </div>
+</div>
+
+<!-- The letter itself (peeking) -->
+<div class="letter-layer" id="letterLayer" hidden>
+  <div class="reading-bar"><span class="dot"></span> Reading · the sun keeps moving<span class="kbd-hint"> · <kbd>E</kbd> to close</span></div>
+  <article class="letter" id="letter" data-testid="letter"></article>
+  <button class="close-letter" id="closeLetter" type="button" aria-label="Close letter">Fold it up</button>
+</div>
+
+<!-- Ending -->
+<div class="overlay ending" id="endingLayer" hidden>
+  <div class="card ending-card" data-testid="ending">
+    <div class="eyebrow" id="endEyebrow">The Harvest Moon</div>
+    <h1 id="endTitle">Happily Ever After</h1>
+    <div class="end-sub" id="endSub"></div>
+    <div class="end-lines" id="endLines"></div>
+    <div class="end-stats" id="endStats"></div>
+    <div class="end-names"><div class="lbl">What the prince called you</div><div id="endNames"></div></div>
+    <div class="end-hint" id="endHint"></div>
+    <div class="end-buttons">
+      <button class="go" id="again" type="button" data-testid="again">Fly again</button>
+      <button class="go ghost" id="archiveBtn" type="button" data-testid="archive">Read the letters</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay archive" id="archiveLayer" hidden>
+  <div class="archive-inner">
+    <div class="archive-head"><h2>The Royal Archive</h2><button class="go ghost" id="archiveClose" type="button">Back</button></div>
+    <p class="quiet">Every letter of your run, unsealed. Lines crossed out in letters you never peeked at stay blotted — some things only a nosy pigeon gets to know.</p>
+    <div id="archiveList"></div>
+  </div>
+</div>
+
+<div class="cover-title" id="coverTitle" hidden><span>Royal Post</span><small>a pigeon · two royals · six sunsets</small></div>
+
+<script src="vendor/three.min.js"></script>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
